@@ -15,18 +15,34 @@
 # For GNU Affero General Public License see <https://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------
 
+# Check if $PG_HOST is set, if not, set it to 'pgvector'.
+if [ -z "${PG_HOST:-}" ]; then
+  PG_HOST="localhost"
+fi
+
 #== Import database
 if [[ $(mysql -h$DB_HOST -P$DB_PORT -u$DB_USER -p$DB_PASSWORD $DB_NAME -e "show tables;") == '' ]]; then
   if [[ -f "$APP_ROOT/.devpanel/dumps/db.sql.gz" ]]; then
     echo  'Import mysql file ...'
     drush sqlq --file="$APP_ROOT/.devpanel/dumps/db.sql.gz" --file-delete
   fi
+
+  #== Import vector files
+  if [[ -f "$APP_ROOT/.devpanel/dumps/pgvector.sql.gz" ]]; then
+    # Make sure to create the extension before importing the SQL file.
+    PGPASSWORD="db" psql --quiet --host=$PG_HOST --username=db -d db -c "CREATE EXTENSION IF NOT EXISTS vector;"
+    # Extract the pgvector.sql.gz file
+    sudo gunzip -c "$APP_ROOT/.devpanel/dumps/pgvector.sql.gz" > "$APP_ROOT/.devpanel/dumps/pgvector.sql"
+    PGPASSWORD="db" psql --quiet --host=$PG_HOST --username=db -d db -f "$APP_ROOT/.devpanel/dumps/pgvector.sql"
+    # Remove the extracted file
+    sudo rm -rf $APP_ROOT/.devpanel/dumps/pgvector.sql
+  fi
 fi
 
 if [[ -n "$DB_SYNC_VOL" ]]; then
   if [[ ! -f "/var/www/build/.devpanel/init-container.sh" ]]; then
     echo  'Sync volume...'
-    sudo chown -R 1000:1000 /var/www/build 
+    sudo chown -R 1000:1000 /var/www/build
     rsync -av --delete --delete-excluded $APP_ROOT/ /var/www/build
   fi
 fi

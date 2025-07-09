@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
-if [ -n "${DEBUG_SCRIPT:-}" ]; then
+: "${DEBUG_SCRIPT:=}"
+if [ -n "$DEBUG_SCRIPT" ]; then
   set -x
 fi
 set -eu -o pipefail
 cd $APP_ROOT
+
+# Check if $PG_HOST is set, if not, set it to 'pgvector'.
+if [ -z "${PG_HOST:-}" ]; then
+  export PG_HOST="localhost"
+fi
 
 LOG_FILE="logs/init-$(date +%F-%T).log"
 exec > >(tee $LOG_FILE) 2>&1
@@ -14,32 +20,19 @@ export COMPOSER_NO_AUDIT=1
 # For faster performance, don't install dev dependencies.
 export COMPOSER_NO_DEV=1
 
-# Install VSCode Extensions
-if [ -n "${DP_VSCODE_EXTENSIONS:-}" ]; then
-  IFS=','
-  for value in $DP_VSCODE_EXTENSIONS; do
-    time code-server --install-extension $value
-  done
-fi
-
 #== Remove root-owned files.
 echo
 echo Remove root-owned files.
 time sudo rm -rf lost+found
 
 #== Composer install.
-echo
-if [ -f composer.json ]; then
-  if composer show --locked cweagans/composer-patches ^2 &> /dev/null; then
-    echo 'Update patches.lock.json.'
-    time composer prl
-    echo
-  fi
-else
+if [ ! -f composer.json ]; then
+  echo
   echo 'Generate composer.json.'
   time source .devpanel/composer_setup.sh
-  echo
+  time source .devpanel/composer_extra.sh
 fi
+echo
 time composer -n update --no-dev --no-progress
 
 #== Create the private files directory.
@@ -65,18 +58,23 @@ fi
 
 #== Install Drupal.
 echo
-if [ -z "$(drush status --field=db-status)" ]; then
-  echo 'Install Drupal.'
+NEWINSTALL=0
+if [ -z "$(mysql -h $DB_HOST -P $DB_PORT -u $DB_USER -p$DB_PASSWORD $DB_NAME -e 'show tables')" ]; then
   time drush -n si
 
   echo
   echo 'Tell Automatic Updates about patches.'
-  drush -n cset --input-format=yaml package_manager.settings additional_trusted_composer_plugins '["cweagans/composer-patches"]'
-  drush -n cset --input-format=yaml package_manager.settings additional_known_files_in_project_root '["patches.json", "patches.lock.json"]'
-  time drush ev '\Drupal::moduleHandler()->invoke("automatic_updates", "modules_installed", [[], FALSE])'
+  drush pm:en package_manager -y
+  time drush -n cset --input-format=yaml package_manager.settings additional_known_files_in_project_root '["patches.json", "patches.lock.json"]'
+  NEWINSTALL=1
 else
-  echo 'Update database.'
-  time drush -n updb
+  drush -n updb
+fi
+
+source .devpanel/setup-ai.sh
+#== Apply the recipe logic if its a new install.
+if [ $NEWINSTALL -eq 1 ]; then
+  source .devpanel/recipe_logic.sh
 fi
 
 #== Warm up caches.
@@ -85,8 +83,9 @@ echo 'Run cron.'
 time drush cron
 echo
 echo 'Populate caches.'
-time drush cache:warm &> /dev/null || :
-time .devpanel/warm
+if ! time drush cache:warm 2> /dev/null; then
+  time .devpanel/warm > /dev/null
+fi
 
 #== Finish measuring script time.
 INIT_DURATION=$SECONDS

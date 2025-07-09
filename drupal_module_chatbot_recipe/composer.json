@@ -1,0 +1,17 @@
+{
+  "name": "drupal/drupal_module_chatbot_recipe",
+  "description": "Adds a chatbot that lets you chat and ask questions about modules.",
+  "type": "drupal-recipe",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "drupal/core": ">=10.4",
+    "drupal/ai": "^1.1",
+    "drupal/ai_agents": "^1.1",
+    "drupal/ai_provider_litellm": "^1.1",
+    "drupal/ai_vdb_provider_postgres": "^1.0@alpha",
+    "drupal/search_api": "^1.38",
+    "league/commonmark": "^2.4",
+    "drupal/pb_ai": "^1.0@beta"
+  },
+  "version": "1.x-dev"
+}

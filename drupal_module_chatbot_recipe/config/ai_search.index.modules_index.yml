@@ -1,0 +1,33 @@
+control_field_max_length: false
+exclude_chunk_from_metadata: false
+indexing_options:
+  url:
+    indexing_option: contextual_content
+    max: -1
+  field_affordances:
+    indexing_option: contextual_content
+    max: -1
+  field_drupal_author:
+    indexing_option: contextual_content
+    max: -1
+  field_module_description:
+    indexing_option: main_content
+    max: -1
+  field_module_link:
+    indexing_option: contextual_content
+    max: -1
+  field_module_status:
+    indexing_option: contextual_content
+    max: -1
+  field_module_summary:
+    indexing_option: contextual_content
+    max: -1
+  field_project_usage:
+    indexing_option: contextual_content
+    max: -1
+  field_security_covered:
+    indexing_option: contextual_content
+    max: -1
+  title:
+    indexing_option: contextual_content
+    max: -1

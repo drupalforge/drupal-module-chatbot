@@ -1,0 +1,195 @@
+name: Drupal Module Chatbot Recipe
+type: AI Recipe
+description: Adds the setup of a module searcher index
+install:
+  - key
+  - ai
+  - ai_provider_litellm
+  - pb_ai
+  - ai_agents
+  - ai_agents_explorer
+  - ai_api_explorer
+  - ai_assistant_api
+  - ai_chatbot
+  - search_api
+  - ai_search
+  - ai_vdb_provider_postgres
+config:
+  import:
+    pb_ai: '*'
+    ai_agents: '*'
+  actions:
+    system.site:
+      simpleConfigUpdate:
+        page:
+          403: '/403-error'
+          404: ''
+          front: /admin/module-start
+    block.block.ai_chatbot:
+      placeBlockInAdminTheme:
+        region:
+          gin: content
+          claro: content
+        default_region: content
+        plugin: ai_deepchat_block
+        settings:
+          id: ai_deepchat_block
+          label: 'Drupal Agent Chatbot'
+          label_display: '0'
+          provider: ai_chatbot
+          ai_assistant: module_searcher_assistant
+          bot_name: 'Module Helper'
+          stream: 0
+          verbose_mode: true
+          default_avatar: /core/misc/druplicon.png
+          first_message: 'I am a Drupal module searcher. Please ask me questions about Drupal modules, and I will try to find the best modules for you.'
+    search_api.server.modules_server:
+      setupVdbServerWithDefaults:
+        langcode: en
+        status: true
+        dependencies:
+          module:
+            - ai_search
+        id: modules_server
+        name: 'Modules Server'
+        description: ''
+        backend: search_api_ai_search
+        backend_config:
+          chat_model: litellm__chat
+          database: postgres
+          database_settings:
+            database_name: db
+            collection: modules
+            metric: cosine_similarity
+          embedding_strategy: contextual_chunks
+          embedding_strategy_configuration:
+            chunk_size: '3000'
+            chunk_min_overlap: '100'
+            contextual_content_max_percentage: '30'
+          embedding_strategy_details: ''
+    search_api.index.modules_index:
+      setupVdbIndex:
+        langcode: en
+        status: true
+        dependencies:
+          config:
+            - field.storage.node.field_affordances
+            - field.storage.node.field_drupal_author
+            - field.storage.node.field_module_description
+            - field.storage.node.field_module_link
+            - field.storage.node.field_module_status
+            - field.storage.node.field_module_summary
+            - field.storage.node.field_project_usage
+            - field.storage.node.field_security_covered
+            - search_api.server.modules_server
+          module:
+            - node
+        id: modules_index
+        name: 'Modules Index'
+        description: ''
+        read_only: false
+        field_settings:
+          field_affordances:
+            label: Affordances
+            datasource_id: 'entity:node'
+            property_path: field_affordances
+            type: text
+            dependencies:
+              config:
+                - field.storage.node.field_affordances
+          field_drupal_author:
+            label: 'Drupal Author'
+            datasource_id: 'entity:node'
+            property_path: field_drupal_author
+            type: string
+            dependencies:
+              config:
+                - field.storage.node.field_drupal_author
+          field_module_description:
+            label: 'Module Description'
+            datasource_id: 'entity:node'
+            property_path: field_module_description
+            type: text
+            dependencies:
+              config:
+                - field.storage.node.field_module_description
+          field_module_link:
+            label: 'Module Link'
+            datasource_id: 'entity:node'
+            property_path: field_module_link
+            type: string
+            dependencies:
+              config:
+                - field.storage.node.field_module_link
+          field_module_status:
+            label: 'Module Status'
+            datasource_id: 'entity:node'
+            property_path: field_module_status
+            type: string
+            dependencies:
+              config:
+                - field.storage.node.field_module_status
+          field_module_summary:
+            label: 'Module Summary'
+            datasource_id: 'entity:node'
+            property_path: field_module_summary
+            type: text
+            dependencies:
+              config:
+                - field.storage.node.field_module_summary
+          field_project_usage:
+            label: 'Project Usage'
+            datasource_id: 'entity:node'
+            property_path: field_project_usage
+            type: integer
+            dependencies:
+              config:
+                - field.storage.node.field_project_usage
+          field_security_covered:
+            label: 'Security Covered'
+            datasource_id: 'entity:node'
+            property_path: field_security_covered
+            type: string
+            dependencies:
+              config:
+                - field.storage.node.field_security_covered
+          title:
+            label: Title
+            datasource_id: 'entity:node'
+            property_path: title
+            type: string
+            dependencies:
+              module:
+                - node
+          url:
+            label: URI
+            property_path: search_api_url
+            type: string
+            configuration:
+              absolute: true
+        datasource_settings:
+          'entity:node':
+            bundles:
+              default: false
+              selected:
+                - modules
+            languages:
+              default: false
+              selected:
+                - en
+        processor_settings:
+          add_url: {  }
+          aggregated_field: {  }
+          custom_value: {  }
+          entity_type: {  }
+          language_with_fallback: {  }
+          rendered_item: {  }
+        tracker_settings:
+          default:
+            indexing_order: fifo
+        options:
+          cron_limit: 10
+          delete_on_fail: true
+          index_directly: false
+          track_changes_in_references: true
+        server: modules_server

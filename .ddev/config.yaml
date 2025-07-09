@@ -1,4 +1,4 @@
-name: starter-template
+name: drupal-module-chatbot
 type: drupal11
 docroot: web
 php_version: "8.3"
@@ -14,6 +14,8 @@ hooks:
         # Set up debugging.
         - exec: test -f .vscode/launch.json || mkdir -p .vscode && cp .ddev/launch.json .vscode/
         # Run initial setup tasks.
+        - exec: .devpanel/custom_package_installer.sh
+        - exec: .devpanel/init-container.sh
         - exec: .devpanel/init.sh
 use_dns_when_possible: true
 composer_version: "2"

@@ -20,6 +20,11 @@ if [[ ! -n "$WEB_ROOT" ]]; then
   export WEB_ROOT=$APP_ROOT
 fi
 
+# Check if $PG_HOST is set, if not, set it to 'pgvector'.
+if [ -z "${PG_HOST:-}" ]; then
+  export PG_HOST="localhost"
+fi
+
 STATIC_FILES_PATH="$WEB_ROOT/sites/default/files/"
 SETTINGS_FILES_PATH="$WEB_ROOT/sites/default/settings.php"
 
@@ -40,8 +45,8 @@ DRUPAL_HASH_SALT=$(openssl rand -hex 32);
 echo $DRUPAL_HASH_SALT > $APP_ROOT/.devpanel/salt.txt
 
 
-# Securing file permissions and ownership
-# https://www.drupal.org/docs/security-in-drupal/securing-file-permissions-and-ownership
+# #Securing file permissions and ownership
+# #https://www.drupal.org/docs/security-in-drupal/securing-file-permissions-and-ownership
 [[ ! -d $STATIC_FILES_PATH ]] && sudo mkdir --mode 775 $STATIC_FILES_PATH || sudo chmod 775 -R $STATIC_FILES_PATH
 
 #== Extract static files
@@ -56,6 +61,21 @@ if [[ $(mysql -h$DB_HOST -P$DB_PORT -u$DB_USER -p$DB_PASSWORD $DB_NAME -e "show 
   #== Import mysql files
   if [[ -f "$APP_ROOT/.devpanel/dumps/db.sql.gz" ]]; then
     echo  'Import mysql file ...'
-    drush sqlq --file="$APP_ROOT/.devpanel/dumps/db.sql.gz" --file-delete
+    drush sqlq --file="$APP_ROOT/.devpanel/dumps/db.sql.gz"
+    sudo rm -rf $APP_ROOT/.devpanel/dumps/db.sql.gz
   fi
+
+  #== Import vector files
+  if [[ -f "$APP_ROOT/.devpanel/dumps/pgvector.sql.gz" ]]; then
+    # Make sure to create the extension before importing the SQL file.
+    PGPASSWORD="db" psql --quiet --host=$PG_HOST --username=db -d db -c "CREATE EXTENSION IF NOT EXISTS vector;"
+    # Extract the pgvector.sql.gz file
+    sudo gunzip -c "$APP_ROOT/.devpanel/dumps/pgvector.sql.gz" > "$APP_ROOT/.devpanel/dumps/pgvector.sql"
+    PGPASSWORD="db" psql --quiet --host=$PG_HOST --username=db -d db -f "$APP_ROOT/.devpanel/dumps/pgvector.sql"
+    # Remove the extracted file
+    sudo rm -rf $APP_ROOT/.devpanel/dumps/pgvector.sql
+  fi
+
 fi
+
+

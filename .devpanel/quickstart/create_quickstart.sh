@@ -43,3 +43,15 @@ tar czf $DUMPS_DIR/files.tgz -C $STATIC_FILES_DIR .
 echo -e "> Store files.tgz to $APP_ROOT/.devpanel/dumps"
 mkdir -p $APP_ROOT/.devpanel/dumps
 mv $DUMPS_DIR/files.tgz $APP_ROOT/.devpanel/dumps/files.tgz
+
+# Step 3 - Compress pgvector files
+if command -v psql >/dev/null 2>&1; then
+  echo -e "> Export pgvector to $APP_ROOT/.devpanel/dumps"
+  export PGPASSWORD="db" && pg_dump --username=db --host=$PG_HOST --file=/tmp/pgvector.sql db
+  echo -e "> Compress pgvector files"
+  sudo gzip -c /tmp/pgvector.sql > $APP_ROOT/.devpanel/dumps/pgvector.sql.gz
+  sudo rm -f /tmp/pgvector.sql
+else
+  echo -e "> PostgreSQL is not installed. Skipping pgvector export."
+fi
+

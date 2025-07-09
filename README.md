@@ -4,59 +4,14 @@
     </a>
 </h1>
 
-This repository is a template for a Drupal Forge app that creates a project
-with Composer, then performs a clean Drupal install with a default admin
-password of _admin_. It is designed to be a wrapper for a Composer project
-developed separately. __If you want to create a template from an existing
-Drupal Forge app, you do not need to start with this template.__
+This is a template for creating a [Drupal Forge](https://www.drupalforge.org)
+app that fetches its code with Composer, then installs Drupal with a default
+admin password of _admin_. It is optimized for fast deployment with [DevPanel](https://www.devpanel.com).
+DevPanel deployment files are in the [`.devpanel`](.devpanel) directory. This
+repository is also configured to run locally using [DDEV](https://ddev.com).
 
-This repository creates the Composer project specified by the `PROJECT`
-environment variable. If `PROJECT` is not defined, it defaults to
-[drupal/recommended-project](https://www.drupal.org/docs/develop/using-composer/starting-a-site-using-drupal-composer-project-templates#s-drupalrecommended-project).
-- You can set a different default value for `PROJECT` in
-  [.devpanel/composer_setup.sh](.devpanel/composer_setup.sh#L10).
-- To skip creating a project with Composer, add your own `composer.json` to the
-  repository root.
-- You can add the `.devpanel` directory from this repository to an existing
-  repository.
-
-This repository is optimized for fast deployment with
-[DevPanel](https://www.devpanel.com). DevPanel deployment files are in the
-[`.devpanel`](.devpanel) directory. This repository is also configured to run
-locally using [DDEV](https://ddev.com).
-
-
-## Publishing a quick start image
-
-For faster deployment, go to the [Actions](../../actions) tab in GitHub after
-you create a new repository from this template and add a workflow that
-pre-deploys your template in a Docker image, reducing the time needed to launch
-a site.
-- If your repository is in the Drupal Forge
-  [GitHub organization](https://github.com/drupalforge), the Drupal Forge
-  _Docker build and push template_ can set up the workflow for you. The
-  workflow will generate a new Docker image whenever a commit is pushed to the
-  `main` or `test/*` branches. Your images will be in the Drupal Forge
-  [Docker Hub account](https://hub.docker.com/u/drupalforge).
-- Otherwise, set up your own workflow and look for the
-  _[Drupal Forge Docker Publish](https://github.com/marketplace/actions/drupal-forge-docker-publish)_
-  action. It includes a reusable workflow you can call from your workflow. This
-  is how the reusable workflow is used in the Drupal Forge _Docker build and
-  push template_:
-
-  ```yaml
-  name: Docker build and push template
-  on:
-    push:
-      branches:
-        - main
-        - test/*
-  jobs:
-    build-application:
-      uses: drupalforge/docker_publish_action/.github/workflows/docker-publish.yml@main
-      with:
-        dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
-      secrets:
-        dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
-        dp_ai_virtual_key: ${{ secrets.DP_AI_VIRTUAL_KEY }}
-  ```
+For even faster deployment, go to the [Actions](../../actions)
+tab in GitHub after you have created your repository and add the _Drupal Forge
+Docker Publish Workflow_. This will generate a Docker image whenever a commit is
+pushed to the `main`, `develop`, or `test/*` branches. Drupal will be fully deployed
+in this Docker image, reducing the time required to launch the site.
