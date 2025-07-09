@@ -11,7 +11,7 @@
 
 # Check if $PG_HOST is set, if not, set it to 'pgvector'.
 if [ -z "${PG_HOST:-}" ]; then
-  PG_HOST="localhost"
+  export PG_HOST="localhost"
 fi
 
 # Install APT packages.

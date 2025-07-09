@@ -19,6 +19,9 @@ echo -e "-------------------------------"
 echo -e "| DevPanel Quickstart Creator |"
 echo -e "-------------------------------\n"
 
+if [ -z "${PG_HOST:-}" ]; then
+  export PG_HOST="localhost"
+fi
 
 # Preparing
 WORK_DIR=$APP_ROOT
