@@ -27,13 +27,16 @@ if [ -n "${DP_AI_VIRTUAL_KEY:-}" ]; then
   # Check if psql is installed.
   if command -v psql >/dev/null 2>&1; then
     time drush pm:en -y ai_vdb_provider_postgres ai_search
+    echo -n "Setting up the postgres password"
     drush -n key-save postgres_db_password --label="Postgres DB Password" --key-provider=config --key-provider-settings='{
       "key_value": "db"
     }'
+    echo -n "Setting up the postgres database"
     drush -n cset ai_vdb_provider_postgres.settings password postgres_db_password
     if env | grep -q DDEV_PROJECT; then
       drush -n cset ai_vdb_provider_postgres.settings host $PG_HOST
     else
+      echo -n "Setting up the postgres database on localhost"
       drush -n cset ai_vdb_provider_postgres.settings host localhost
     fi
     drush -n cset ai_vdb_provider_postgres.settings port 5432
