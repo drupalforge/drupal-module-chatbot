@@ -13,3 +13,6 @@ drush pbai
 
 #== Index 10 nodes.
 drush sapi-i --limit=10 modules_server
+
+#== Make sure tiktoken is writable by all.
+sudo chmod -R 777 /tmp/tiktoken
