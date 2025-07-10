@@ -56,6 +56,41 @@ if [ ! -f .devpanel/salt.txt ]; then
   time openssl rand -hex 32 > .devpanel/salt.txt
 fi
 
+#== Check if the /var/www/html/postgresql directory doesn't exist.
+if [ ! -d /var/www/html/postgresql ]; then
+  echo 'Moving the PostgreSQL data directory to /var/www/html/postgresql.'
+  #== We need to reset the postgres location to the stored disk location on devpanel.
+  sudo service postgresql stop
+  #== Copy the postgresql.conf to the location.
+  sudo cp ./devpanel/conf/postgresql.conf /etc/postgresql/17/main/postgresql.conf
+  #== Fix ownership and permissions.
+  sudo chown postgres:postgres /etc/postgresql/17/main/postgresql.conf
+  sudo chmod 0644 /etc/postgresql/17/main/postgresql.conf
+
+  #== Make the needed directories.
+  sudo mkdir -p /var/www/html/postgresql/etc/17/main/
+  sudo mkdir -p /var/www/html/postgresql/17/
+
+  #== Copy the data.
+  sudo cp -r /var/lib/postgresql/17/main/ /var/www/html/postgresql/17/
+
+  #== Copy the files from the original location.
+  sudo cp /etc/postgresql/17/main/pg_hba.conf /var/www/html/postgresql/etc/17/main/
+
+  #== Set ownership and permissions.
+  sudo chown -R postgres:postgres /var/www/html/postgresql/
+  sudo chmod 0700 -R /var/www/html/postgresql/17/main
+
+  #== Start the postgresql service.
+  sudo service postgresql start
+  #== Create the user.
+  sudo su postgres -c "psql -c \"CREATE ROLE db WITH LOGIN PASSWORD 'db';\""
+  #== Create the database.
+  sudo su postgres -c "psql -c \"CREATE DATABASE db WITH OWNER db ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' TEMPLATE template0;\""
+  #== Enable pgvector extension.
+  sudo su postgres -c "psql -d db -c \"CREATE EXTENSION IF NOT EXISTS vector;\""
+fi
+
 #== Install Drupal.
 echo
 NEWINSTALL=0
