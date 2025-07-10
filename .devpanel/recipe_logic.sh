@@ -13,7 +13,7 @@ drush pbai
 
 #== Index 10 nodes.
 echo "Indexing 10 nodes to test..."
-drush sapi-i --limit=10 modules_server
+drush sapi-i --limit=10 modules_index
 
 echo "Making sure the tiktoken directory is writable by all users..."
 #== Make sure tiktoken is writable by all.
