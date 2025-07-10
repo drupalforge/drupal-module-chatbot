@@ -91,7 +91,7 @@ if [ ! -d /var/www/html/postgresql ]; then
   sudo su postgres -c "psql -d db -c \"CREATE EXTENSION IF NOT EXISTS vector;\""
 else
   echo 'PostgreSQL is already installed - copying and restarting.'
-  sudo cp ./devpanel/conf/postgresql.conf /etc/postgresql/17/main/postgresql.conf
+  sudo cp ./.devpanel/conf/postgresql.conf /etc/postgresql/17/main/postgresql.conf
   sudo chown postgres:postgres /etc/postgresql/17/main/postgresql.conf
   sudo chmod 0644 /etc/postgresql/17/main/postgresql.conf
   sudo service postgresql restart

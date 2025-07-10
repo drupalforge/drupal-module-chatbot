@@ -63,7 +63,7 @@ else
     #== We need to reset the postgres location to the stored disk location on devpanel.
     sudo service postgresql stop
     #== Copy the postgresql.conf to the location.
-    sudo cp ./devpanel/conf/postgresql.conf /etc/postgresql/17/main/postgresql.conf
+    sudo cp ./.devpanel/conf/postgresql.conf /etc/postgresql/17/main/postgresql.conf
     #== Fix ownership and permissions.
     sudo chown postgres:postgres /etc/postgresql/17/main/postgresql.conf
     sudo chmod 0644 /etc/postgresql/17/main/postgresql.conf
