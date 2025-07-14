@@ -11,9 +11,13 @@ drush recipe ../recipes/drupal_module_chatbot_recipe -y
 #== Get all the nodes.
 drush pbai
 
-#== Index 10 nodes.
-echo "Indexing 10 nodes to test..."
-drush sapi-i --limit=10 modules_index
+#== Index 10 nodes per time for 5600 nodes.
+for i in {1..560}; do
+  drush sapi-i --limit=10 nodes_index
+  #== Sleep for 2 seconds to avoid overloading the system.
+  sleep 2
+done
+
 
 echo "Making sure the tiktoken directory is writable by all users..."
 #== Make sure tiktoken is writable by all.
