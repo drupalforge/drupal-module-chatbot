@@ -11,15 +11,15 @@ if [ -n "${DP_AI_VIRTUAL_KEY:-}" ]; then
   drush -n cset ai_provider_litellm.settings host "https://ai.drupalforge.org"
   drush -n cset ai_provider_openai.settings api_key openai_api_key
   drush -n cset ai.settings default_providers.chat.provider_id litellm
-  drush -n cset ai.settings default_providers.chat.model_id openai/gpt-4.1
+  drush -n cset ai.settings default_providers.chat.model_id openai/gpt-4.1-mini
   drush -n cset ai.settings default_providers.chat_with_complex_json.provider_id litellm
-  drush -n cset ai.settings default_providers.chat_with_complex_json.model_id openai/gpt-4.1
+  drush -n cset ai.settings default_providers.chat_with_complex_json.model_id openai/gpt-4.1-mini
   drush -n cset ai.settings default_providers.chat_with_image_vision.provider_id litellm
-  drush -n cset ai.settings default_providers.chat_with_image_vision.model_id openai/gpt-4.1
+  drush -n cset ai.settings default_providers.chat_with_image_vision.model_id openai/gpt-4.1-mini
   drush -n cset ai.settings default_providers.chat_with_structured_response.provider_id litellm
-  drush -n cset ai.settings default_providers.chat_with_structured_response.model_id openai/gpt-4.1
+  drush -n cset ai.settings default_providers.chat_with_structured_response.model_id openai/gpt-4.1-mini
   drush -n cset ai.settings default_providers.chat_with_tools.provider_id litellm
-  drush -n cset ai.settings default_providers.chat_with_tools.model_id openai/gpt-4.1
+  drush -n cset ai.settings default_providers.chat_with_tools.model_id openai/gpt-4.1-mini
   drush -n cset ai.settings default_providers.embeddings.provider_id litellm
   drush -n cset ai.settings default_providers.embeddings.model_id openai/text-embedding-3-small
   drush -n cset ai.settings default_providers.text_to_speech.provider_id litellm
