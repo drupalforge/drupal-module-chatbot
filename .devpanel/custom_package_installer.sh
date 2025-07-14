@@ -56,7 +56,7 @@ if env | grep -q DDEV_PROJECT; then
   sudo chmod 0755 /usr/sbin
   #== Start the PostgreSQL service.
   env PATH="/usr/sbin:/usr/bin:/sbin:/bin" sudo service postgresql start
-else
+#else
   #== Check if the /var/www/html/postgresql directory doesn't exist.
   #if [ ! -d /var/www/html/postgresql ]; then
   #  echo 'Moving the PostgreSQL data directory to /var/www/html/postgresql.'
