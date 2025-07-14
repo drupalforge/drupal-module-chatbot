@@ -11,14 +11,6 @@ drush recipe ../recipes/drupal_module_chatbot_recipe -y
 #== Get all the nodes.
 drush pbai
 
-#== Index 10 nodes per time for 5600 nodes.
-for i in {1..560}; do
-  drush sapi-i --limit=10 nodes_index
-  echo "Indexed 10 nodes, iteration $i"
-  #== Sleep for 2 seconds to avoid overloading the system.
-  sleep 2
-done
-
 echo "Making sure the tiktoken directory is writable by all users..."
 #== Make sure tiktoken is writable by all.
 if [ ! -d /tmp/tiktoken ]; then
@@ -26,7 +18,11 @@ if [ ! -d /tmp/tiktoken ]; then
 fi
 sudo chmod -R 777 /tmp/tiktoken
 
-#== Set back to use DF for embeddings.
-echo "Setting back to use DF for embeddings..."
-drush -n cset ai.settings default_providers.embeddings.provider_id openai
-drush -n cset ai.settings default_providers.embeddings.model_id text-embedding-3-small
+
+#== Index 10 nodes per time for 5600 nodes.
+for i in {1..560}; do
+  drush sapi-i --limit=10 modules_index
+  echo "Indexed 10 nodes, iteration $i"
+  #== Sleep for 2 second to avoid overloading the system.
+  sleep 2
+done
