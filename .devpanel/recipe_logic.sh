@@ -19,10 +19,14 @@ for i in {1..560}; do
   sleep 2
 done
 
-
 echo "Making sure the tiktoken directory is writable by all users..."
 #== Make sure tiktoken is writable by all.
 if [ ! -d /tmp/tiktoken ]; then
   sudo mkdir -p /tmp/tiktoken
 fi
 sudo chmod -R 777 /tmp/tiktoken
+
+#== Set back to use DF for embeddings.
+echo "Setting back to use DF for embeddings..."
+drush -n cset ai.settings default_providers.embeddings.provider_id openai
+drush -n cset ai.settings default_providers.embeddings.model_id text-embedding-3-small
