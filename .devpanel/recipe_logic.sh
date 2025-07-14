@@ -14,6 +14,7 @@ drush pbai
 #== Index 10 nodes per time for 5600 nodes.
 for i in {1..560}; do
   drush sapi-i --limit=10 nodes_index
+  echo "Indexed 10 nodes, iteration $i"
   #== Sleep for 2 seconds to avoid overloading the system.
   sleep 2
 done
