@@ -18,6 +18,10 @@ if [ ! -d /tmp/tiktoken ]; then
 fi
 sudo chmod -R 777 /tmp/tiktoken
 
+#== Flush the caches.
+echo
+echo 'Flush the caches.'
+time drush cr
 
 #== Index 10 nodes per time for 5600 nodes.
 for i in {1..560}; do
