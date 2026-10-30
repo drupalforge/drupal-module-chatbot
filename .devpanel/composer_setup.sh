@@ -23,11 +23,11 @@ composer config --no-plugins allow-plugins.php-http/discovery true
 composer config --no-plugins allow-plugins.tbachert/spi false
 
 # Scaffold settings.php.
-composer config --no-plugins -j extra.drupal-scaffold.file-mapping '{
+composer config -jm extra.drupal-scaffold.file-mapping '{
     "[web-root]/sites/default/settings.php": {
         "path": "web/core/assets/scaffold/files/default.settings.php",
         "overwrite": false
     }
 }'
-composer config --no-plugins scripts.post-drupal-scaffold-cmd \
-    'cd web/sites/default && (patch -Np1 -r /dev/null < "${APP_ROOT}"/.devpanel/drupal-settings.patch | : )'
+composer config scripts.post-drupal-scaffold-cmd \
+    'cd web/sites/default && test -z "$(grep '\''include \$devpanel_settings;'\'' settings.php)" && patch -Np1 -r /dev/null < $APP_ROOT/.devpanel/drupal-settings.patch || :'
