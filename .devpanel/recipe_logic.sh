@@ -6,6 +6,7 @@ drush pm:en admin_toolbar -y
 drush pm:en admin_toolbar_tools -y
 
 #== Apply the recipe with variables.
+drush recipe core/recipes/article_content_type
 drush recipe ../recipes/drupal_module_chatbot_recipe -y
 
 #== Get all the nodes.
