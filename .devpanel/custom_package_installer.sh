@@ -9,6 +9,11 @@
 #
 # ----------------------------------------------------------------------
 
+if [ "$EUID" -ne 0 ]; then
+  echo 'custom_package_installer.sh must be run as root.' >&2
+  exit 1
+fi
+
 # Check if $PG_HOST is set, if not, set it to 'pgvector'.
 if [ -z "${PG_HOST:-}" ]; then
   export PG_HOST="localhost"
