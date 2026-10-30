@@ -3,8 +3,10 @@ Files in the `.devpanel` directory control DevPanel deployment for this app.
 
 ## Startup scripts
 
-- [`custom_package_installer.sh`](custom_package_installer.sh): Installs
-  extra system software.
+- [`custom_package_installer.sh`](custom_package_installer.sh): Starts the
+  PostgreSQL vector database and installs any extra system software that is
+  not already in the image. Must run as root; DevPanel runs it as root, and
+  the DDEV post-start hook uses `sudo -E` to preserve the container environment.
 - [`init-container.sh`](init-container.sh): Checks for a database dump and
   imports it.
 - [`init.sh`](init.sh): Performs additional startup tasks. Supporting files:
@@ -30,6 +32,9 @@ Files in the `.devpanel` directory control DevPanel deployment for this app.
 
 ## Creating a Docker image
 
+- [`Dockerfile`](Dockerfile): Appended to the base Dockerfile by the
+  _Drupal Forge Docker Publish Workflow_. Bakes system packages, PHP
+  extensions, and the PostgreSQL pgvector database into the image.
 - [`create_quickstart.sh`](quickstart/create_quickstart.sh): Archives the
   database and files for the _Drupal Forge Docker Publish Workflow_ which can be
   added in [GitHub Actions](https://github.com/drupalforge/starter_template/actions).
