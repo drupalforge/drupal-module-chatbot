@@ -34,22 +34,34 @@ if ! php --re uploadprogress > /dev/null 2>&1; then
   echo 'extension=uploadprogress.so' | sudo tee /usr/local/etc/php/conf.d/uploadprogress.ini
 fi
 
-#!/usr/bin/env bash
+#== Match the server to the client version shipped with the base image.
+if [ -z "${PG_MAJOR:-}" ]; then
+  if command -v psql >/dev/null 2>&1; then
+    PG_MAJOR=$(psql --version | grep -oE '[0-9]+' | head -n1)
+  else
+    PG_MAJOR=18
+  fi
+fi
 
-#Update.
-time sudo apt-get update
+if [ ! -x "/usr/lib/postgresql/$PG_MAJOR/bin/postgres" ] || ! dpkg -s "postgresql-$PG_MAJOR-pgvector" >/dev/null 2>&1; then
+  # Newer base images already configure the PostgreSQL apt repository in
+  # pgdg.sources. A second entry with a different key makes apt unusable.
+  if [ -f /etc/apt/sources.list.d/pgdg.sources ]; then
+    sudo rm -f /etc/apt/sources.list.d/pgdg.list
+  elif [ ! -f /etc/apt/sources.list.d/pgdg.list ]; then
+    sudo apt-get update
+    sudo apt-get install -y curl ca-certificates
+    sudo install -d /usr/share/postgresql-common/pgdg
+    sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    . /etc/os-release
+    sudo sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
+  fi
+  time sudo apt-get update
 
-# Prepare so it works in devpanel also.
-sudo apt -y install curl ca-certificates apt-transport-https
-sudo install -d /usr/share/postgresql-common/pgdg
-sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
-. /etc/os-release
-sudo sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
-sudo apt-get update
-
-#== Install postgresql on the host.
-echo 'PostgreSQL is not installed. Installing it now.'
-time sudo apt-get install -y postgresql postgresql-17-pgvector postgresql-client
+  #== Install postgresql on the host.
+  echo "PostgreSQL $PG_MAJOR is not installed. Installing it now."
+  time sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "postgresql-$PG_MAJOR" "postgresql-$PG_MAJOR-pgvector" "postgresql-client-$PG_MAJOR"
+fi
 #== Make it less promiscuous in DDEV only.
 if env | grep -q DDEV_PROJECT; then
   sudo chmod 0755 /usr/bin
@@ -84,10 +96,13 @@ else
   #
   #== Start the postgresql service.
   sudo service postgresql start
-  #== Create the user.
-  sudo su postgres -c "psql -c \"CREATE ROLE db WITH LOGIN PASSWORD 'db';\""
-  #== Create the database.
-  sudo su postgres -c "psql -c \"CREATE DATABASE db WITH OWNER db ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' TEMPLATE template0;\""
+  #== Create the user and database if the image did not already provide them.
+  if [ "$(sudo su postgres -c "psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname = 'db'\"")" != 1 ]; then
+    sudo su postgres -c "psql -c \"CREATE ROLE db WITH LOGIN PASSWORD 'db';\""
+  fi
+  if [ "$(sudo su postgres -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname = 'db'\"")" != 1 ]; then
+    sudo su postgres -c "psql -c \"CREATE DATABASE db WITH OWNER db ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' TEMPLATE template0;\""
+  fi
   #== Enable pgvector extension.
   sudo su postgres -c "psql -d db -c \"CREATE EXTENSION IF NOT EXISTS vector;\""
   #else
@@ -97,8 +112,10 @@ else
 fi
 
 # Make sure that php has pgsql installed.
-sudo apt install -y libpq-dev
-sudo -E docker-php-ext-install pgsql
+if ! php --re pgsql > /dev/null 2>&1; then
+  sudo apt-get install -y libpq-dev
+  sudo -E docker-php-ext-install pgsql
+fi
 
 # Reload Apache if it's running.
 if $PECL_UPDATED && sudo /etc/init.d/apache2 status > /dev/null; then

@@ -31,16 +31,27 @@ if [ -n "${DP_AI_VIRTUAL_KEY:-}" ]; then
   echo
   # Check if psql is installed.
   if command -v psql >/dev/null 2>&1; then
+    if env | grep -q DDEV_PROJECT; then
+      VDB_HOST=$PG_HOST
+    else
+      VDB_HOST=localhost
+    fi
+    # The container startup script may still be installing PostgreSQL.
+    echo "Waiting for PostgreSQL at $VDB_HOST:5432..."
+    for _ in $(seq 1 300); do
+      pg_isready --quiet --host="$VDB_HOST" --port=5432 && break
+      sleep 2
+    done
+    if ! pg_isready --host="$VDB_HOST" --port=5432; then
+      echo "PostgreSQL did not become available. See /tmp/custom_package_installer.log." >&2
+      exit 1
+    fi
     time drush pm:en -y ai_vdb_provider_postgres ai_search
     drush -n key-save postgres_db_password --label="Postgres DB Password" --key-provider=config --key-provider-settings='{
       "key_value": "db"
     }'
     drush -n cset ai_vdb_provider_postgres.settings password postgres_db_password
-    if env | grep -q DDEV_PROJECT; then
-      drush -n cset ai_vdb_provider_postgres.settings host $PG_HOST
-    else
-      drush -n cset ai_vdb_provider_postgres.settings host localhost
-    fi
+    drush -n cset ai_vdb_provider_postgres.settings host "$VDB_HOST"
     drush -n cset ai_vdb_provider_postgres.settings port 5432
     drush -n cset ai_vdb_provider_postgres.settings default_database db
     drush -n cset ai_vdb_provider_postgres.settings username db
