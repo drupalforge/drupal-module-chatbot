@@ -24,10 +24,13 @@ echo
 echo 'Flush the caches.'
 time drush cr
 
-#== Index 10 nodes per time for 5600 nodes.
-for i in {1..560}; do
-  drush sapi-i --limit=10 modules_index
-  echo "Indexed 10 nodes, iteration $i"
-  #== Sleep for 2 second to avoid overloading the system.
+#== Index 10 items at a time until the index reports it is up to date.
+for i in {1..600}; do
+  output=$(drush sapi-i --limit=10 modules_index 2>&1) || true
+  echo "$output"
+  if [[ "$output" == *"is up to date"* ]]; then
+    break
+  fi
+  #== Sleep for 2 seconds to avoid overloading the system.
   sleep 2
 done
