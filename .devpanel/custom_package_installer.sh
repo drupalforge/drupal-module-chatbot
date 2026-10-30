@@ -10,7 +10,7 @@
 # ----------------------------------------------------------------------
 
 if [ "$EUID" -ne 0 ]; then
-  echo "custom_package_installer.sh must be run as root." >&2
+  echo 'custom_package_installer.sh must be run as root.' >&2
   exit 1
 fi
 
