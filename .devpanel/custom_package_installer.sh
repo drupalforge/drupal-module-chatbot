@@ -9,6 +9,11 @@
 #
 # ----------------------------------------------------------------------
 
+if [ "$EUID" -ne 0 ]; then
+  echo "custom_package_installer.sh must be run as root." >&2
+  exit 1
+fi
+
 # Check if $PG_HOST is set, if not, set it to 'pgvector'.
 if [ -z "${PG_HOST:-}" ]; then
   export PG_HOST="localhost"
@@ -85,7 +90,7 @@ fi
 # Make sure that php has pgsql installed.
 if ! php --re pgsql > /dev/null 2>&1; then
   apt-get install -y libpq-dev
-  -E docker-php-ext-install pgsql
+  docker-php-ext-install pgsql
 fi
 
 # Reload Apache if it's running.

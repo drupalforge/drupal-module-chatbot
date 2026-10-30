@@ -3,7 +3,7 @@ Files in the `.devpanel` directory control DevPanel deployment for this app.
 
 ## Startup scripts
 
-- [`custom_package_installer.sh`](custom_package_installer.sh): Starts the
+- [`custom_package_installer.sh`](custom_package_installer.sh): Runs as root. Starts the
   PostgreSQL vector database and installs any extra system software that is
   not already in the image.
 - [`init-container.sh`](init-container.sh): Checks for a database dump and

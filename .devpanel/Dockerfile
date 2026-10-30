@@ -4,6 +4,7 @@ USER root
 
 # Defaults to the PostgreSQL client version shipped with the base image.
 ARG PG_MAJOR=""
+ENV PG_MAJOR=${PG_MAJOR}
 
 # Install tools, PHP extensions, and a PostgreSQL server that matches the
 # client version shipped with the base image. The base image already provides
